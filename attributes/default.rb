@@ -12,7 +12,7 @@ default["monit"]["start_delay"] = 0
 default["monit"]["polling_frequency"] = 20
 
 # Use syslog for logging instead of a logfile.
-default["monit"]["use_syslog"] = true
+default["monit"]["use_syslog"] = false
 
 # If not using syslog, the log file that monit will use.
 default["monit"]["logfile"] = "/var/log/monit.log"
