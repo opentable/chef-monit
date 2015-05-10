@@ -3,14 +3,14 @@
 # Recipe:: default
 #
 
+include_recipe "apt" if platform_family?("debian") # ~FC007 uses `suggests`
+
 if node["monit"]["source_install"]
   include_recipe "monit::install_source"
+elsif node["monit"]["binary_install"]
+  include_recipe "monit::install_binary"
 else
-  include_recipe "yum-epel" if platform_family?("rhel") # ~FC007 uses `suggests`
-
-  package "monit" do
-    version node["monit"]["version"] if node["monit"]["version"]
-  end
+  include_recipe "monit::install_package"
 end
 
 # optionally use encrypted mail credentials
@@ -34,6 +34,14 @@ template node["monit"]["main_config_path"] do
   notifies :reload, "service[monit]" if node["monit"]["reload_on_change"]
 end
 
+# build default monitrc files
+node["monit"]["default_monitrc_configs"].each do |conf|
+  monit_monitrc conf do
+    variables(category: "system")
+    notifies :reload, "service[monit]"
+  end
+end
+
 directory "/var/monit" do
   owner "root"
   group "root"
@@ -54,24 +62,6 @@ end
 
 # system service
 service "monit" do
-  supports restart: true, start: true, reload: true
+  supports restart: true, reload: true
   action [:enable, :start]
-
-  if platform?("debian")
-    start_command   "/usr/sbin/invoke-rc.d monit start"
-    restart_command "/usr/sbin/invoke-rc.d monit restart"
-    reload_command  "monit reload"
-  else
-    start_command   "service monit start"
-    restart_command "service monit restart"
-    reload_command  "monit reload"
-  end
-end
-
-# build default monitrc files
-node["monit"]["default_monitrc_configs"].each do |conf|
-  monit_monitrc conf do
-    variables(category: "system")
-    notifies :reload, "service[monit]"
-  end
 end

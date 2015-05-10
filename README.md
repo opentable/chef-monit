@@ -11,12 +11,12 @@ Installs the `monit` package from (http://mmonit.com/monit/).
 
 The following platforms are supported by this cookbook, meaning that the recipes run on these platforms without error:
 
-* Ubuntu
-* Debian
+* Ubuntu 12.04, 14.04
+* Debian 7.8, 8.0
 * RedHat
-* CentOS
+* CentOS 6.6, 7.1
 * Scientific
-* Fedora
+* Fedora 21
 * SUSE
 * Amazon
 
@@ -57,6 +57,9 @@ default["monit"]["start_delay"] = 0
 # How frequently the monit daemon polls for changes.
 default["monit"]["polling_frequency"] = 20
 
+# Where Monit stores the pid file
+default["monit"]["pidfile"] = "/var/run/monit.pid"
+
 # Use syslog for logging instead of a logfile.
 default["monit"]["use_syslog"] = true
 
@@ -72,8 +75,10 @@ default["monit"]["statefile"] = "/var/lib/monit/state"
 # Enable emails for internal monit alerts
 default["monit"]["mail_alerts"] = true
 
-# Ignore alerts for specific events
 # Possible events include: action, checksum, connection, content, data, exec, fsflags, gid, icmp, instance, invalid, nonexist, permission, pid, ppid, resource, size, status, timeout, timestamp, uid, uptime.
+# Only alert on specific events
+default["monit"]["alert_onlyif_events"] = []
+# Ignore alerts for specific events
 default["monit"]["alert_ignore_events"] = []
 
 # Email address that will be notified of events.
@@ -99,7 +104,8 @@ default["monit"]["mail"] = {
   subject:  "$SERVICE $EVENT at $DATE",
   message:  "Monit $ACTION $SERVICE at $DATE on $HOST,\n\n$DESCRIPTION\n\nDutifully,\nMonit",
   security: nil,  # 'SSLV2'|'SSLV3'|'TLSV1'
-  timeout:  30
+  timeout:  30,
+  using_hostname: nil
 }
 
 case node["platform_family"]
@@ -128,15 +134,25 @@ default["monit"]["version"] = nil
 
 # source install specifics
 default["monit"]["source_install"] = false
+default["monit"]["source_uninstall"] = false
 
-default["monit"]["source"]["version"] = "5.7"
+default["monit"]["source"]["version"] = "5.12.2"
 default["monit"]["source"]["prefix"] = "/usr/local"
-default["monit"]["source"]["url"] = "https://mmonit.com/monit/dist/monit-5.7.tar.gz"
-default["monit"]["source"]["checksum"] = "bb250ab011d805b5693972afdf95509e79bb3b390caa763275c9501f74b598a2"
+default["monit"]["source"]["url"] = "https://mmonit.com/monit/dist/monit-#{node["monit"]["source"]["version"]}.tar.gz"
+default["monit"]["source"]["checksum"] = "8ab0296d1aa2351b1573481592d7b5e06de1edd49dff1b5552839605a450914c"
 default["monit"]["source"]["pam_support"] = true
 default["monit"]["source"]["ssl_support"] = true
 default["monit"]["source"]["large_file_support"] = true
 default["monit"]["source"]["compiler_optimized"] = true
+
+# binary install specifics
+default["monit"]["binary_install"] = false
+default["monit"]["binary_uninstall"] = false
+
+default["monit"]["binary"]["version"] = "5.12.2"
+default["monit"]["binary"]["prefix"] = "/usr"
+default["monit"]["binary"]["url"] = "http://mmonit.com/monit/dist/binary/#{node["monit"]["binary"]["version"]}/monit-#{node["monit"]["binary"]["version"]}-linux-x64.tar.gz"
+default["monit"]["binary"]["checksum"] = "4908143752d0ee5081a50389a9206b7c905f9f8922a062a208fecf6e729a3c77"
 ```
 
 ## Contributors
@@ -155,6 +171,7 @@ Many thanks go to the following [contributors](https://github.com/phlipper/chef-
     * whyrun support for monitrc provider
     * support for reloading monit without restart
     * don't render 'use address' if no address is provided
+    * fix attribute comments
 * **[@tjwallace](https://github.com/tjwallace)**
     * load default monitrc configs from an attribute
 * **[@tomdz](https://github.com/tomdz)**
@@ -185,6 +202,20 @@ Many thanks go to the following [contributors](https://github.com/phlipper/chef-
     * fix bug in which monit is not started during bootstrap
 * **[@mvdkleijn](https://github.com/mvdkleijn)**
     * add settings for idfile and statefile
+* **[@mbanton](https://github.com/mbanton)**
+    * fix `statefile` attribute in `monitrc` template
+* **[@foxycoder](https://github.com/foxycoder)**
+    * add support for binary install
+* **[@ijin](https://github.com/ijin)**
+    * add `using_hostname` attribute
+    * better ssh support for Amazon Linux
+* **[@rickhull](https://github.com/rickhull)**
+    * update to use latest monit versions
+    * add proper rhel-family support with init script template
+* **[@dougbarth](https://github.com/dougbarth)**
+    * fix lwrp `updated_by_last_action`
+* **[@fulloflilies](https://github.com/fulloflilies)**
+    * fix converge error caused by overwriting running binary file
 
 
 ## Contributing
@@ -200,8 +231,6 @@ Many thanks go to the following [contributors](https://github.com/phlipper/chef-
 
 **chef-monit**
 
-* Freely distributable and licensed under the [MIT license](http://phlipper.mit-license.org/2011-2014/license.html).
-* Copyright (c) 2011-2014 Phil Cohen (github@phlippers.net) [![endorse](http://api.coderwall.com/phlipper/endorsecount.png)](http://coderwall.com/phlipper)  [![Gittip](http://img.shields.io/gittip/phlipper.png)](https://www.gittip.com/phlipper/)
+* Freely distributable and licensed under the [MIT license](http://phlipper.mit-license.org/2011-2015/license.html).
+* Copyright (c) 2011-2015 Phil Cohen (github@phlippers.net) [![endorse](http://api.coderwall.com/phlipper/endorsecount.png)](http://coderwall.com/phlipper)  [![Gittip](http://img.shields.io/gittip/phlipper.png)](https://www.gittip.com/phlipper/)
 * http://phlippers.net/
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/phlipper/chef-monit/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

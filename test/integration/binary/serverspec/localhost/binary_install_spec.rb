@@ -6,13 +6,18 @@ def redhat?
   os[:family] == "redhat"
 end
 
-describe "Default install of monit" do
+def status_command
+  config_file = redhat? ? "/etc/monit.conf" : "/etc/monit/monitrc"
+  "monit -c #{config_file} status"
+end
+
+describe "Binary install of monit" do
   describe package("monit") do
-    it { should be_installed }
+    it { should_not be_installed }
   end
 
   describe command("monit -V") do
-    its(:stdout) { should match(/monit version \d\.\d/i) }
+    its(:stdout) { should match(/version 5\.12\.2/) }
     its(:exit_status) { should eq 0 }
   end
 
@@ -21,18 +26,12 @@ describe "Default install of monit" do
     it { should be_running }
   end
 
-  describe command("monit status") do
+  describe command(status_command) do
     its(:stdout) { should match(/System '[\w\-\.]+'/) }
+    its(:stdout) { should match(/status\s+(Initializing|Running)/) }
     its(:stdout) do
-      should match(/monitoring status\s+(Initializing|Monitored)/i)
+      should match(/monitoring status\s+(Initializing|Monitored)/)
     end
-
-    if redhat?
-      its(:stdout) { should match(/The Monit daemon \d\.\d\.\d uptime: \d+m/) }
-    else
-      its(:stdout) { should match(/status\s+(Initializing|Running)/) }
-    end
-
     its(:exit_status) { should eq 0 }
   end
 end

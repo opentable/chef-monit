@@ -11,6 +11,9 @@ default["monit"]["start_delay"] = 0
 # How frequently the monit daemon polls for changes.
 default["monit"]["polling_frequency"] = 10
 
+# Where Monit stores the pid file
+default["monit"]["pidfile"] = "/var/run/monit.pid"
+
 # Use syslog for logging instead of a logfile.
 default["monit"]["use_syslog"] = false
 
@@ -26,8 +29,10 @@ default["monit"]["statefile"] = "/var/lib/monit/state"
 # Enable emails for internal monit alerts
 default["monit"]["mail_alerts"] = true
 
-# Ignore alerts for specific events
 # Possible events include: action, checksum, connection, content, data, exec, fsflags, gid, icmp, instance, invalid, nonexist, permission, pid, ppid, resource, size, status, timeout, timestamp, uid, uptime.
+# Only alert on specific events
+default["monit"]["alert_onlyif_events"] = []
+# Ignore alerts for specific events
 default["monit"]["alert_ignore_events"] = []
 
 # Email address that will be notified of events.
@@ -53,7 +58,8 @@ default["monit"]["mail"] = {
   subject:  "$SERVICE $EVENT at $DATE",
   message:  "Monit $ACTION $SERVICE at $DATE on $HOST,\n\n$DESCRIPTION\n\nDutifully,\nMonit",
   security: nil,  # 'SSLV2'|'SSLV3'|'TLSV1'
-  timeout:  30
+  timeout:  30,
+  using_hostname: nil
 }
 
 case node["platform_family"]
@@ -82,12 +88,22 @@ default["monit"]["version"] = nil
 
 # source install specifics
 default["monit"]["source_install"] = false
+default["monit"]["source_uninstall"] = false
 
-default["monit"]["source"]["version"] = "5.7"
+default["monit"]["source"]["version"] = "5.12.2"
 default["monit"]["source"]["prefix"] = "/usr/local"
-default["monit"]["source"]["url"] = "https://mmonit.com/monit/dist/monit-5.7.tar.gz"
-default["monit"]["source"]["checksum"] = "bb250ab011d805b5693972afdf95509e79bb3b390caa763275c9501f74b598a2"
+default["monit"]["source"]["url"] = "https://mmonit.com/monit/dist/monit-#{node["monit"]["source"]["version"]}.tar.gz"
+default["monit"]["source"]["checksum"] = "8ab0296d1aa2351b1573481592d7b5e06de1edd49dff1b5552839605a450914c"
 default["monit"]["source"]["pam_support"] = true
 default["monit"]["source"]["ssl_support"] = true
 default["monit"]["source"]["large_file_support"] = true
 default["monit"]["source"]["compiler_optimized"] = true
+
+# binary install specifics
+default["monit"]["binary_install"] = false
+default["monit"]["binary_uninstall"] = false
+
+default["monit"]["binary"]["version"] = "5.12.2"
+default["monit"]["binary"]["prefix"] = "/usr"
+default["monit"]["binary"]["url"] = "http://mmonit.com/monit/dist/binary/#{node["monit"]["binary"]["version"]}/monit-#{node["monit"]["binary"]["version"]}-linux-x64.tar.gz"
+default["monit"]["binary"]["checksum"] = "4908143752d0ee5081a50389a9206b7c905f9f8922a062a208fecf6e729a3c77"
